@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 
@@ -10,7 +10,23 @@ const isSupabaseConfigured = Boolean(
     !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase')
 );
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Cache Supabase client to avoid recreating connection on every upload
+let cachedSupabaseClient: SupabaseClient | null = null;
+function getStorageClient(): SupabaseClient | null {
+  if (!isSupabaseConfigured) return null;
+  if (!cachedSupabaseClient) {
+    cachedSupabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: { persistSession: false, autoRefreshToken: false },
+      }
+    );
+  }
+  return cachedSupabaseClient;
+}
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB tolerance
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
@@ -30,7 +46,7 @@ export class StorageService {
     prefix: 'pickup' | 'return' = 'pickup'
   ): Promise<string> {
     if (buffer.length > MAX_FILE_SIZE) {
-      throw new Error('Image exceeds 10MB maximum file size limit');
+      throw new Error('Image exceeds 25MB maximum file size limit');
     }
 
     if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
@@ -41,18 +57,15 @@ export class StorageService {
     const safeName = `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}${ext}`;
 
     // 1. Try Supabase Storage if configured
-    if (isSupabaseConfigured) {
+    const supabase = getStorageClient();
+    if (supabase) {
       try {
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
         const { error } = await supabase.storage
           .from('repair-images')
           .upload(safeName, buffer, {
             contentType: mimeType,
             upsert: true,
+            cacheControl: '31536000',
           });
 
         if (!error) {
