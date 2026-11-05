@@ -26,19 +26,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Capacitor Dependencies
+      - name: Install Dependencies
         run: |
+          npm install --legacy-peer-deps
           npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Add Android Platform
+      - name: Initialize and Sync Android Platform
         run: |
           npx cap add android
-
-      - name: Update Capacitor Android
-        run: |
           npx cap sync android
 
       - name: Build Debug APK
@@ -50,23 +45,20 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RepairTrack-App-Debug.apk
+          name: RepairTrack-App-Debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v1.0.0-${{ github.run_number }}
+          tag_name: v1.0.${{ github.run_number }}
           name: "RepairTrack Ops Android APK v1.0.${{ github.run_number }}"
           body: |
-            ## 📱 RepairTrack Ops Android APK Download
-            
+            ## 📱 RepairTrack Ops Android APK
             Download the attached `.apk` file directly on your Android phone to install the RepairTrack mobile app.
             
             - **Live Server URL:** https://mobile-repair-tracker.vercel.app
-            - **Cloud Database:** Live Supabase PostgreSQL
-            - **Accounts:** Admin 1, Admin 2, Admin 3, Technician
+            - **Live Cloud Database:** Supabase PostgreSQL
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
