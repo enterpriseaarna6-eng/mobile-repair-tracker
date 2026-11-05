@@ -201,11 +201,11 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-white">RepairTrack Android APK</p>
-              <p className="text-[11px] text-emerald-300/80">Direct mobile installer (v1.0.4 • 3.8 MB)</p>
+              <p className="text-[11px] text-emerald-300/80">Direct mobile installer (Latest APK)</p>
             </div>
           </div>
           <a
-            href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/download/v1.0.4/app-debug.apk"
+            href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/latest/download/app-debug.apk"
             target="_blank"
             rel="noopener noreferrer"
             className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 shadow-md"

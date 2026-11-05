@@ -28,14 +28,12 @@ export function generateCsvReport(
   type: 'pending' | 'completed',
   baseUrl: string = ''
 ): string {
+  // Exactly the 4 columns specified: Date, Model, Reason, Image
   const headers = [
-    'Date',
+    type === 'pending' ? 'Pickup Date' : 'Completion Date',
     'Model Name',
     'Repair Reason',
-    'Image URL',
-    'Original Pickup Date',
-    'Repair Item ID',
-    'Status',
+    'Batch Image URL',
   ];
 
   const rows: string[] = [headers.map(escapeCsvValue).join(',')];
@@ -55,9 +53,6 @@ export function generateCsvReport(
       item.model_name,
       item.repair_reason,
       fullImageUrl,
-      item.pickup_date,
-      item.id,
-      item.status.toUpperCase(),
     ];
 
     rows.push(row.map(escapeCsvValue).join(','));

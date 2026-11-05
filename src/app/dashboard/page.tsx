@@ -76,13 +76,22 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2.5">
           {isAdmin ? (
-            <Link
-              href="/reports"
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm transition-colors"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-amber-400" />
-              <span>Download Excel / CSV Reports</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/pending"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg shadow-sm transition-colors"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Pending to Repair</span>
+              </Link>
+              <Link
+                href="/completed"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-sm transition-colors"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Completed Repairs</span>
+              </Link>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <Link

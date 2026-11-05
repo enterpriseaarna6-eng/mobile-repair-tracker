@@ -19,7 +19,7 @@ export async function generateExcelReport(
   });
 
   // Title Row (Row 1)
-  worksheet.mergeCells('A1:G1');
+  worksheet.mergeCells('A1:D1');
   const titleCell = worksheet.getCell('A1');
   titleCell.value = `${title.toUpperCase()} (Generated on ${new Date().toLocaleDateString('en-IN')})`;
   titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -31,15 +31,12 @@ export async function generateExcelReport(
   titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
   worksheet.getRow(1).height = 36;
 
-  // Header Row (Row 2)
+  // Header Row (Row 2) - Exactly the 4 columns specified: Date, Model, Reason, Image
   const headers = [
-    { header: type === 'pending' ? 'Pickup Date' : 'Completion Date', key: 'reportDate', width: 18 },
-    { header: 'Model Name', key: 'model_name', width: 26 },
-    { header: 'Repair Reason', key: 'repair_reason', width: 36 },
-    { header: type === 'pending' ? 'Pickup Batch Image' : 'Return Batch Image', key: 'image', width: 25 },
-    { header: 'Original Pickup Date', key: 'original_pickup_date', width: 22 },
-    { header: 'Repair Item ID', key: 'item_id', width: 18 },
-    { header: 'Status', key: 'status', width: 16 },
+    { header: type === 'pending' ? 'Pickup Date' : 'Completion Date', key: 'reportDate', width: 20 },
+    { header: 'Model Name', key: 'model_name', width: 30 },
+    { header: 'Repair Reason', key: 'repair_reason', width: 40 },
+    { header: type === 'pending' ? 'Pickup Batch Image' : 'Return Batch Image', key: 'image', width: 30 },
   ];
 
   const headerRow = worksheet.getRow(2);
@@ -67,7 +64,7 @@ export async function generateExcelReport(
   if (items.length === 0) {
     const emptyRow = worksheet.getRow(3);
     emptyRow.height = 30;
-    worksheet.mergeCells('A3:G3');
+    worksheet.mergeCells('A3:D3');
     const emptyCell = emptyRow.getCell(1);
     emptyCell.value = 'No records found for the selected criteria.';
     emptyCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -145,28 +142,8 @@ export async function generateExcelReport(
     }
     c4.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
-    // 5. Original Pickup Date
-    const c5 = row.getCell(5);
-    c5.value = rd.item.pickup_date;
-    c5.alignment = { vertical: 'middle', horizontal: 'center' };
-
-    // 6. Repair Item ID
-    const c6 = row.getCell(6);
-    c6.value = rd.item.id;
-    c6.alignment = { vertical: 'middle', horizontal: 'center' };
-    c6.font = { name: 'Courier New', bold: true };
-
-    // 7. Status
-    const c7 = row.getCell(7);
-    c7.value = rd.item.status.toUpperCase();
-    c7.alignment = { vertical: 'middle', horizontal: 'center' };
-    c7.font = {
-      bold: true,
-      color: { argb: rd.item.status === 'completed' ? 'FF059669' : 'FFD97706' },
-    };
-
-    // Standard cell borders
-    for (let c = 1; c <= 7; c++) {
+    // Standard cell borders for the 4 columns
+    for (let c = 1; c <= 4; c++) {
       row.getCell(c).border = {
         top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
         left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -202,9 +179,9 @@ export async function generateExcelReport(
       };
     }
 
-    // Heavy black bottom border separating different date groups!
+    // Heavy black bottom border separating different date groups across all 4 columns!
     const lastRowOfDate = worksheet.getRow(rowDataList[dateEndIdx].rowNumber);
-    for (let c = 1; c <= 7; c++) {
+    for (let c = 1; c <= 4; c++) {
       const existingBorder = lastRowOfDate.getCell(c).border || {};
       lastRowOfDate.getCell(c).border = {
         ...existingBorder,

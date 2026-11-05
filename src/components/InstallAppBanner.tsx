@@ -78,7 +78,7 @@ export function InstallAppBanner() {
 
       <div className="flex items-center gap-2 shrink-0">
         <a
-          href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/download/v1.0.4/app-debug.apk"
+          href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/latest/download/app-debug.apk"
           target="_blank"
           rel="noopener noreferrer"
           className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"

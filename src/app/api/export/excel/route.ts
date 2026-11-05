@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     const excelBuffer = await generateExcelReport(items, type, baseUrl);
 
     const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const filename = `${type === 'pending' ? 'Pending_to_Repair' : 'Completed_Repairs'}_${dateSuffix}.xlsx`;
+    const filename = `${type === 'pending' ? 'PENDING_TO_REPAIR' : 'COMPLETED_REPAIRS'}_${dateSuffix}.xlsx`;
 
     return new Response(excelBuffer as unknown as BodyInit, {
       status: 200,

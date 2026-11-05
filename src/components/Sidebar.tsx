@@ -43,7 +43,6 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Pending to Repair', href: '/pending', icon: Clock },
     { name: 'Completed Repairs', href: '/completed', icon: CheckCircle2 },
-    { name: 'Reports & Downloads', href: '/reports', icon: FileSpreadsheet },
     { name: 'Repair Audit Log', href: '/history', icon: History },
   ];
 
