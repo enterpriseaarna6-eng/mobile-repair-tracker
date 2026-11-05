@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Capacitor Dependencies
+        run: |
+          npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Add Android Platform
+        run: |
+          npx cap add android
+
+      - name: Update Capacitor Android
+        run: |
+          npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RepairTrack-App-Debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0-${{ github.run_number }}
+          name: "RepairTrack Ops Android APK v1.0.${{ github.run_number }}"
+          body: |
+            ## 📱 RepairTrack Ops Android APK Download
+            
+            Download the attached `.apk` file directly on your Android phone to install the RepairTrack mobile app.
+            
+            - **Live Server URL:** https://mobile-repair-tracker.vercel.app
+            - **Cloud Database:** Live Supabase PostgreSQL
+            - **Accounts:** Admin 1, Admin 2, Admin 3, Technician
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

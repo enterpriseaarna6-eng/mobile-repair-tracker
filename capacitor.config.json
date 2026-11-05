@@ -1,0 +1,9 @@
+{
+  "appId": "com.repairtrack.ops",
+  "appName": "RepairTrack",
+  "webDir": "public",
+  "server": {
+    "url": "https://mobile-repair-tracker.vercel.app",
+    "cleartext": true
+  }
+}

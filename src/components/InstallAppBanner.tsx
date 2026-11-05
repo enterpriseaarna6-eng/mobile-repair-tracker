@@ -96,3 +96,4 @@ export function InstallAppBanner() {
     </div>
   );
 }
+
