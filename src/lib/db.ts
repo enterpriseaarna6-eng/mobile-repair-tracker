@@ -459,21 +459,23 @@ export class DatabaseService {
           };
           newRepairItems.push(newRepairItem);
           allItemsList.push({ id: itemId });
-
-          // History entry
-          await supabaseClient.from('repair_history').insert([
-            {
-              repair_item_id: itemId,
-              previous_status: 'none',
-              new_status: 'pending',
-              event_date: timestamp,
-              performed_by: params.technician_id,
-              notes: `Pickup intake registered under batch ${batchId}`,
-            },
-          ]);
         }
 
-        await supabaseClient.from('repair_items').insert(newRepairItems);
+        // Insert repair items first
+        const { error: itemsError } = await supabaseClient.from('repair_items').insert(newRepairItems);
+        if (itemsError) throw itemsError;
+
+        // Then insert audit history entries
+        const historyEntries = newRepairItems.map((item) => ({
+          repair_item_id: item.id,
+          previous_status: 'none',
+          new_status: 'pending',
+          event_date: timestamp,
+          performed_by: params.technician_id,
+          notes: `Pickup intake registered under batch ${batchId}`,
+        }));
+        await supabaseClient.from('repair_history').insert(historyEntries);
+
         return { batch: newBatch, items: newRepairItems };
       } catch (err) {
         console.warn('Supabase createPickupBatch failed, falling back to local DB:', err);
