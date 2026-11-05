@@ -59,6 +59,67 @@ jobs:
               }
           }
           EOF
+
+          # Configure Android Native WebView Download Listener
+          mkdir -p android/app/src/main/java/com/repairtrack/ops
+          cat << 'EOF' > android/app/src/main/java/com/repairtrack/ops/MainActivity.java
+          package com.repairtrack.ops;
+
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.DownloadListener;
+          import android.webkit.CookieManager;
+          import android.webkit.URLUtil;
+          import android.app.DownloadManager;
+          import android.net.Uri;
+          import android.os.Environment;
+          import android.content.Context;
+          import android.widget.Toast;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  try {
+                      WebView webView = this.getBridge().getWebView();
+                      webView.setDownloadListener(new DownloadListener() {
+                          @Override
+                          public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                              try {
+                                  DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                                  if (mimeType != null && !mimeType.isEmpty()) {
+                                      request.setMimeType(mimeType);
+                                  }
+                                  String cookie = CookieManager.getInstance().getCookie(url);
+                                  if (cookie != null) {
+                                      request.addRequestHeader("Cookie", cookie);
+                                  }
+                                  request.addRequestHeader("User-Agent", userAgent);
+                                  request.setDescription("Downloading RepairTrack Report...");
+                                  request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+                                  String filename = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                                  request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename);
+
+                                  DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                                  if (dm != null) {
+                                      dm.enqueue(request);
+                                      Toast.makeText(getApplicationContext(), "Downloading " + filename + "...", Toast.LENGTH_SHORT).show();
+                                  }
+                              } catch (Exception e) {
+                                  try {
+                                      android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                                      i.setData(Uri.parse(url));
+                                      startActivity(i);
+                                  } catch (Exception ignored) {}
+                              }
+                          }
+                      });
+                  } catch (Exception ignored) {}
+              }
+          }
+          EOF
           npx cap sync android
 
       - name: Build Debug APK
