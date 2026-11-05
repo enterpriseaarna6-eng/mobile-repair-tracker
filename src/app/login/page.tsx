@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wrench, Lock, Mail, ShieldAlert, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Wrench, Lock, Mail, ShieldAlert, ArrowRight, Loader2, CheckCircle2, Download, Smartphone } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -191,6 +191,28 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Mobile APK Download Banner */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-emerald-950/70 to-slate-900 border border-emerald-600/40 rounded-xl flex items-center justify-between gap-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white">RepairTrack Android APK</p>
+              <p className="text-[11px] text-emerald-300/80">Direct mobile installer (v1.0.4 • 3.8 MB)</p>
+            </div>
+          </div>
+          <a
+            href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/download/v1.0.4/app-debug.apk"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 shadow-md"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download APK</span>
+          </a>
         </div>
 
         {/* Security notice */}

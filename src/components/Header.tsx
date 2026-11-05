@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Menu, Plus, Calendar, ShieldCheck, User } from 'lucide-react';
+import { Menu, Plus, Calendar, ShieldCheck, User, Download } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 import { formatKolkataDateOnly, getKolkataDateString } from '@/lib/timezone';
 
@@ -41,6 +41,18 @@ export function Header({ user, onOpenSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Direct Android APK Download Button */}
+        <a
+          href="https://github.com/enterpriseaarna6-eng/mobile-repair-tracker/releases/download/v1.0.4/app-debug.apk"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-md shadow-sm transition-colors"
+          title="Download Android APK"
+        >
+          <Download className="w-3.5 h-3.5 text-emerald-700" />
+          <span className="hidden xs:inline">Download</span> APK
+        </a>
+
         {/* Quick Action Button for Technician */}
         {!isAdmin && (
           <Link
