@@ -84,14 +84,14 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Email Address
+                Email / Name / Mobile / User ID
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="admin1@repairtrack.com or technician@..."
+                  placeholder="e.g. sangeet, ayush, ankit, rohan or 9330929105"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
@@ -144,50 +144,50 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin1@repairtrack.com', 'admin123')}
+                onClick={() => handleQuickLogin('sangeet@repairtrack.com', 'Ank933967@')}
                 className="p-2 text-left bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-md transition-colors group"
               >
                 <div className="flex items-center justify-between font-semibold text-amber-400">
                   <span>Admin 1</span>
-                  <span className="text-[10px] text-slate-400">Ravi</span>
+                  <span className="text-[10px] text-slate-300 font-bold">SANGEET</span>
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">admin1@...</div>
+                <div className="text-[10px] text-slate-400 truncate">sangeet@...</div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin2@repairtrack.com', 'admin123')}
+                onClick={() => handleQuickLogin('ayush@repairtrack.com', 'Ank933967@')}
                 className="p-2 text-left bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-md transition-colors group"
               >
                 <div className="flex items-center justify-between font-semibold text-amber-400">
                   <span>Admin 2</span>
-                  <span className="text-[10px] text-slate-400">Priya</span>
+                  <span className="text-[10px] text-slate-300 font-bold">AYUSH</span>
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">admin2@...</div>
+                <div className="text-[10px] text-slate-400 truncate">ayush@...</div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin3@repairtrack.com', 'admin123')}
+                onClick={() => handleQuickLogin('ankit@repairtrack.com', 'Ank933967@')}
                 className="p-2 text-left bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-md transition-colors group"
               >
                 <div className="flex items-center justify-between font-semibold text-amber-400">
                   <span>Admin 3</span>
-                  <span className="text-[10px] text-slate-400">Vikram</span>
+                  <span className="text-[10px] text-slate-300 font-bold">ANKIT</span>
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">admin3@...</div>
+                <div className="text-[10px] text-slate-400 truncate">ankit@...</div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('technician@repairtrack.com', 'tech123')}
+                onClick={() => handleQuickLogin('rohan@repairtrack.com', '9330929105')}
                 className="p-2 text-left bg-emerald-950/40 hover:bg-emerald-950/60 border border-emerald-800/50 rounded-md transition-colors group"
               >
                 <div className="flex items-center justify-between font-semibold text-emerald-400">
                   <span>Technician</span>
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span className="text-[10px] text-emerald-300 font-bold">ROHAN</span>
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">technician@...</div>
+                <div className="text-[10px] text-slate-400 truncate">rohan / 9330929105</div>
               </button>
             </div>
           </div>

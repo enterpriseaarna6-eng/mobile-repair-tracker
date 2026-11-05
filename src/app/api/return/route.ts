@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const user = await AuthService.requireRole('technician');
 
     const body = await req.json();
-    const { return_image_url, repair_item_ids, items } = body;
+    const { return_image_url, repair_item_ids, items, return_date, return_time } = body;
 
     if (!return_image_url || typeof return_image_url !== 'string') {
       return NextResponse.json(
@@ -30,6 +30,8 @@ export async function POST(req: Request) {
     const result = await DatabaseService.createReturnBatch({
       return_image_url,
       technician_id: user.id,
+      return_date,
+      return_time,
       repair_item_ids: hasIds ? repair_item_ids : undefined,
       items: hasItems ? items : undefined,
     });

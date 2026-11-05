@@ -4,28 +4,84 @@ import { DatabaseService } from './db';
 
 const SESSION_COOKIE_NAME = 'repair_session_token';
 
-// Preset credentials for the 4 accounts
-const ACCOUNT_PASSWORDS: Record<string, string> = {
-  'admin1@repairtrack.com': 'admin123',
-  'admin2@repairtrack.com': 'admin123',
-  'admin3@repairtrack.com': 'admin123',
-  'technician@repairtrack.com': 'tech123',
-};
+interface SystemAccount {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  passwords: string[];
+  aliases: string[];
+}
+
+const SYSTEM_ACCOUNTS: SystemAccount[] = [
+  {
+    id: 'f2ccc007-2a4b-47f0-a540-ae3a4201b832',
+    email: 'sangeet@repairtrack.com',
+    full_name: 'SANGEET SHAW',
+    role: 'admin',
+    passwords: ['Ank933967@', 'admin123'],
+    aliases: ['sangeet shaw', 'sangeet', 'admin1', 'admin1@repairtrack.com', 'sangeet@repairtrack.com'],
+  },
+  {
+    id: 'ebbb9cc0-ed0f-4717-bda2-756a9d7d4558',
+    email: 'ayush@repairtrack.com',
+    full_name: 'AYUSH GUPTA',
+    role: 'admin',
+    passwords: ['Ank933967@', 'admin123'],
+    aliases: ['ayush gupta', 'ayush', 'admin2', 'admin2@repairtrack.com', 'ayush@repairtrack.com'],
+  },
+  {
+    id: 'b9f09921-454b-4706-8c04-e9d0b50379c8',
+    email: 'ankit@repairtrack.com',
+    full_name: 'ANKIT GUPTA',
+    role: 'admin',
+    passwords: ['Ank933967@', 'admin123'],
+    aliases: ['ankit gupta', 'ankit', 'admin3', 'admin3@repairtrack.com', 'ankit@repairtrack.com'],
+  },
+  {
+    id: '562b298c-7f9f-42bc-bda8-91177bdce61d',
+    email: 'rohan@repairtrack.com',
+    full_name: 'ROHAN',
+    role: 'technician',
+    passwords: ['9330929105', 'tech123'],
+    aliases: ['rohan', 'technician', '9330929105', 'rohan@repairtrack.com', 'technician@repairtrack.com'],
+  },
+];
 
 export class AuthService {
   /**
-   * Validate credentials and return user profile
+   * Validate credentials by email, name, or phone number/ID
    */
-  static async verifyCredentials(email: string, password: string): Promise<UserProfile | null> {
-    const normalizedEmail = email.toLowerCase().trim();
-    const expectedPassword = ACCOUNT_PASSWORDS[normalizedEmail];
+  static async verifyCredentials(identifier: string, password: string): Promise<UserProfile | null> {
+    const rawId = identifier.trim().toLowerCase();
+    const cleanPass = password.trim();
 
-    if (!expectedPassword || expectedPassword !== password) {
+    const account = SYSTEM_ACCOUNTS.find(
+      (acc) =>
+        acc.email.toLowerCase() === rawId ||
+        acc.full_name.toLowerCase() === rawId ||
+        acc.aliases.some((a) => a.toLowerCase() === rawId)
+    );
+
+    if (!account) {
       return null;
     }
 
-    const profile = await DatabaseService.getProfileByEmail(normalizedEmail);
-    return profile;
+    if (!account.passwords.includes(cleanPass)) {
+      return null;
+    }
+
+    // Try to fetch latest live profile from database or return system profile
+    const profile = await DatabaseService.getProfileById(account.id);
+    if (profile) return profile;
+
+    return {
+      id: account.id,
+      email: account.email,
+      full_name: account.full_name,
+      role: account.role,
+      created_at: new Date().toISOString(),
+    };
   }
 
   /**

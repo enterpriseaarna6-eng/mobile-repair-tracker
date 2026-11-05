@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const user = await AuthService.requireRole('technician');
 
     const body = await req.json();
-    const { pickup_image_url, items } = body;
+    const { pickup_image_url, items, pickup_date, pickup_time } = body;
 
     if (!pickup_image_url || typeof pickup_image_url !== 'string') {
       return NextResponse.json(
@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     const result = await DatabaseService.createPickupBatch({
       pickup_image_url,
       technician_id: user.id,
+      pickup_date,
+      pickup_time,
       items: items.map((it: { model_name: string; repair_reason: string }) => ({
         model_name: it.model_name.trim(),
         repair_reason: it.repair_reason.trim(),

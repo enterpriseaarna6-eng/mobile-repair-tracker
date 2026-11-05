@@ -26,29 +26,29 @@ interface LocalDatabase {
 const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'f2ccc007-2a4b-47f0-a540-ae3a4201b832',
-    email: 'admin1@repairtrack.com',
-    full_name: 'Admin Ravi Sharma',
+    email: 'sangeet@repairtrack.com',
+    full_name: 'SANGEET SHAW',
     role: 'admin',
     created_at: '2026-10-01T00:00:00+05:30',
   },
   {
     id: 'ebbb9cc0-ed0f-4717-bda2-756a9d7d4558',
-    email: 'admin2@repairtrack.com',
-    full_name: 'Admin Priya Verma',
+    email: 'ayush@repairtrack.com',
+    full_name: 'AYUSH GUPTA',
     role: 'admin',
     created_at: '2026-10-01T00:00:00+05:30',
   },
   {
     id: 'b9f09921-454b-4706-8c04-e9d0b50379c8',
-    email: 'admin3@repairtrack.com',
-    full_name: 'Admin Vikram Mehta',
+    email: 'ankit@repairtrack.com',
+    full_name: 'ANKIT GUPTA',
     role: 'admin',
     created_at: '2026-10-01T00:00:00+05:30',
   },
   {
     id: '562b298c-7f9f-42bc-bda8-91177bdce61d',
-    email: 'technician@repairtrack.com',
-    full_name: 'Ramesh Patel (Technician)',
+    email: 'rohan@repairtrack.com',
+    full_name: 'ROHAN',
     role: 'technician',
     created_at: '2026-10-01T00:00:00+05:30',
   },
@@ -401,10 +401,12 @@ export class DatabaseService {
   static async createPickupBatch(params: {
     pickup_image_url: string;
     technician_id: string;
+    pickup_date?: string;
+    pickup_time?: string;
     items: { model_name: string; repair_reason: string }[];
   }): Promise<{ batch: PickupBatch; items: RepairItem[] }> {
-    const todayDate = getKolkataDateString();
-    const currentTime = getKolkataTimeString();
+    const todayDate = params.pickup_date || getKolkataDateString();
+    const currentTime = params.pickup_time || getKolkataTimeString();
     const timestamp = new Date().toISOString();
     const batchId = generateBatchId('PB');
 
@@ -538,11 +540,13 @@ export class DatabaseService {
   static async createReturnBatch(params: {
     return_image_url: string;
     technician_id: string;
+    return_date?: string;
+    return_time?: string;
     repair_item_ids?: string[];
     items?: { model_name: string; pickup_date: string; item_id?: string }[];
   }): Promise<{ batch: ReturnBatch; completed_items: RepairItem[] }> {
-    const todayDate = getKolkataDateString();
-    const currentTime = getKolkataTimeString();
+    const todayDate = params.return_date || getKolkataDateString();
+    const currentTime = params.return_time || getKolkataTimeString();
     const timestamp = new Date().toISOString();
     const batchId = generateBatchId('RB');
 
@@ -572,15 +576,15 @@ export class DatabaseService {
                 .select('*')
                 .eq('status', 'pending')
                 .eq('pickup_date', entry.pickup_date)
-                .ilike('model_name', entry.model_name.trim())
-                .limit(1);
+                .ilike('model_name', entry.model_name.trim());
 
-              if (!matched || matched.length === 0) {
+              const available = (matched || []).find((m) => !targetItemIds.includes(m.id));
+              if (!available) {
                 throw new Error(
                   `No pending phone found for "${entry.model_name}" picked up on ${entry.pickup_date}`
                 );
               }
-              targetItemIds.push(matched[0].id);
+              targetItemIds.push(available.id);
             }
           }
         }
@@ -679,7 +683,8 @@ export class DatabaseService {
             (i) =>
               i.status === 'pending' &&
               i.pickup_date === entry.pickup_date &&
-              i.model_name.toLowerCase().trim() === entry.model_name.toLowerCase().trim()
+              i.model_name.toLowerCase().trim() === entry.model_name.toLowerCase().trim() &&
+              !targetItemIds.includes(i.id)
           );
           if (!matched) {
             throw new Error(

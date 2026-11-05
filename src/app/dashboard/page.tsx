@@ -51,11 +51,26 @@ export default function DashboardPage() {
       {/* Top Welcome & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold mb-2 uppercase tracking-wide border shadow-xs">
+            {isAdmin ? (
+              <span className="bg-amber-100 text-amber-900 border-amber-300 flex items-center gap-1.5 px-2 py-0.5 rounded-full">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Admin View ({user?.full_name || 'Admin'})
+              </span>
+            ) : (
+              <span className="bg-emerald-100 text-emerald-900 border-emerald-300 flex items-center gap-1.5 px-2 py-0.5 rounded-full">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Technician View ({user?.full_name || 'Rohan'})
+              </span>
+            )}
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {isAdmin ? 'Operational Command Center' : 'Technician Repair Workbench'}
+            {isAdmin ? `Admin Command Center` : `Technician Repair Workbench`}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Real-time repair inventory analytics across all intake and return batches.
+            {isAdmin
+              ? 'Real-time stock auditing, all-time figures, and downloadable Excel/CSV reporting.'
+              : 'Record new pickup batches, search models to auto-fill return reasons, and manage pending stock.'}
           </p>
         </div>
 
