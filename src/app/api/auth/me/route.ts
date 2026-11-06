@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
 
-export async function GET() {
-  const user = await AuthService.getCurrentUser();
+export async function GET(req: Request) {
+  const user = await AuthService.getCurrentUser(req);
   if (!user) {
-    return NextResponse.json({ user: null });
+    return NextResponse.json({ user: null, token: null });
   }
-  return NextResponse.json({ user });
+  const token = AuthService.createToken(user);
+  return NextResponse.json({ user, token });
 }
 

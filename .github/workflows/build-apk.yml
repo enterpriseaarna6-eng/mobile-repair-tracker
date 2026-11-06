@@ -60,7 +60,22 @@ jobs:
           }
           EOF
 
-          # Configure Android Native WebView Download Listener
+          # Configure Android FileProvider XML
+          mkdir -p android/app/src/main/res/xml
+          cat << 'EOF' > android/app/src/main/res/xml/file_paths.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+              <cache-path name="cache" path="." />
+              <external-path name="external" path="." />
+              <external-files-path name="external_files" path="." />
+          </paths>
+          EOF
+
+          # Configure Android Permissions & FileProvider in AndroidManifest.xml
+          sed -i 's/<application/<uses-permission android:name="android.permission.WAKE_LOCK" \/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" \/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" \/>\n    <application/' android/app/src/main/AndroidManifest.xml
+          sed -i 's/<\/application>/    <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml\/file_paths" \/><\/provider>\n<\/application>/' android/app/src/main/AndroidManifest.xml
+
+          # Configure Android Native WebView Bridge & Download Listener
           mkdir -p android/app/src/main/java/com/repairtrack/ops
           cat << 'EOF' > android/app/src/main/java/com/repairtrack/ops/MainActivity.java
           package com.repairtrack.ops;
@@ -70,19 +85,124 @@ jobs:
           import android.webkit.DownloadListener;
           import android.webkit.CookieManager;
           import android.webkit.URLUtil;
+          import android.webkit.JavascriptInterface;
           import android.app.DownloadManager;
           import android.net.Uri;
           import android.os.Environment;
           import android.content.Context;
+          import android.content.Intent;
           import android.widget.Toast;
+          import android.view.WindowManager;
+          import android.media.MediaScannerConnection;
+          import android.util.Base64;
+          import java.io.File;
+          import java.io.FileOutputStream;
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
+
+              public class AndroidBridge {
+                  Context context;
+
+                  public AndroidBridge(Context ctx) {
+                      this.context = ctx;
+                  }
+
+                  @JavascriptInterface
+                  public void setKeepScreenOn(final boolean keepOn) {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  if (keepOn) {
+                                      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                  } else {
+                                      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                  }
+                              } catch (Exception ignored) {}
+                          }
+                      });
+                  }
+
+                  @JavascriptInterface
+                  public void saveBase64ToDownloads(final String base64Data, final String filename, final String mimeType) {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  byte[] data = Base64.decode(base64Data, Base64.DEFAULT);
+                                  File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                                  if (!downloadsDir.exists()) {
+                                      downloadsDir.mkdirs();
+                                  }
+                                  File destFile = new File(downloadsDir, filename);
+                                  FileOutputStream fos = new FileOutputStream(destFile);
+                                  fos.write(data);
+                                  fos.flush();
+                                  fos.close();
+
+                                  MediaScannerConnection.scanFile(
+                                      getApplicationContext(),
+                                      new String[] { destFile.getAbsolutePath() },
+                                      new String[] { mimeType },
+                                      null
+                                  );
+
+                                  Toast.makeText(getApplicationContext(), "✓ Saved to Downloads: " + filename, Toast.LENGTH_LONG).show();
+                              } catch (Exception e) {
+                                  Toast.makeText(getApplicationContext(), "Save error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                              }
+                          }
+                      });
+                  }
+
+                  @JavascriptInterface
+                  public void shareBase64File(final String base64Data, final String filename, final String mimeType) {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  byte[] data = Base64.decode(base64Data, Base64.DEFAULT);
+                                  File cacheDir = getCacheDir();
+                                  File shareFile = new File(cacheDir, filename);
+                                  FileOutputStream fos = new FileOutputStream(shareFile);
+                                  fos.write(data);
+                                  fos.flush();
+                                  fos.close();
+
+                                  Uri contentUri = androidx.core.content.FileProvider.getUriForFile(
+                                      getApplicationContext(),
+                                      getPackageName() + ".fileprovider",
+                                      shareFile
+                                  );
+
+                                  Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                                  shareIntent.setType(mimeType);
+                                  shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                                  shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                                  Intent chooser = Intent.createChooser(shareIntent, "Share " + filename);
+                                  chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                  startActivity(chooser);
+                              } catch (Exception e) {
+                                  // Fallback to downloads save if share provider not handled
+                                  saveBase64ToDownloads(base64Data, filename, mimeType);
+                              }
+                          }
+                      });
+                  }
+              }
+
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   try {
+                      // Prevent phone screen from sleeping while in the app
+                      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
                       WebView webView = this.getBridge().getWebView();
+                      webView.addJavascriptInterface(new AndroidBridge(this), "AndroidApp");
+
                       webView.setDownloadListener(new DownloadListener() {
                           @Override
                           public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {

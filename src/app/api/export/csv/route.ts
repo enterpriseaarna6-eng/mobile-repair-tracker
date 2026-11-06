@@ -5,8 +5,8 @@ import { generateCsvReport } from '@/lib/csv';
 
 export async function GET(req: Request) {
   try {
-    // Security: Only admins can download reports!
-    const user = await AuthService.requireRole('admin');
+    // Security: Only admins can download reports! (supports cookies, auth query token, or Bearer header)
+    const user = await AuthService.requireRole('admin', req);
 
     const { searchParams } = new URL(req.url);
     const type = (searchParams.get('type') as 'pending' | 'completed') || 'pending';

@@ -24,6 +24,7 @@ import { getKolkataDateString, formatKolkataDateOnly, getKolkataTimeString } fro
 import { ImageModal } from '@/components/ImageModal';
 import { RepairItem } from '@/lib/types';
 import { compressImage, formatFileSize, CompressionResult } from '@/lib/imageCompression';
+import { requestScreenWakeLock, releaseScreenWakeLock } from '@/lib/wakeLock';
 
 interface ReturnRow {
   rowId: string;
@@ -148,6 +149,7 @@ export default function ReturnPage() {
     setErrorMessage(null);
     setUploadedImageUrl(null);
     setUploadStatus('compressing');
+    await requestScreenWakeLock('return_photo_upload');
 
     try {
       // 1. Instant client-side compression (reduces 10MB to ~180KB in <150ms)
@@ -175,6 +177,8 @@ export default function ReturnPage() {
       setErrorMessage(
         err instanceof Error ? err.message : 'Photo optimization or upload failed'
       );
+    } finally {
+      await releaseScreenWakeLock();
     }
   };
 
@@ -318,6 +322,7 @@ export default function ReturnPage() {
     }
 
     setSubmitting(true);
+    await requestScreenWakeLock('return_batch_submit');
 
     try {
       // 1. Get uploaded image URL (already completed in background in 99% of cases!)
@@ -373,6 +378,7 @@ export default function ReturnPage() {
       const msg = err instanceof Error ? err.message : 'Return completion failed';
       setErrorMessage(msg);
     } finally {
+      await releaseScreenWakeLock();
       setSubmitting(false);
     }
   };

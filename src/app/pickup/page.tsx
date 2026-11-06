@@ -22,6 +22,7 @@ import {
 import { getKolkataDateString, formatKolkataDateOnly, getKolkataTimeString } from '@/lib/timezone';
 import { ImageModal } from '@/components/ImageModal';
 import { compressImage, formatFileSize, CompressionResult } from '@/lib/imageCompression';
+import { requestScreenWakeLock, releaseScreenWakeLock } from '@/lib/wakeLock';
 
 interface PhoneRow {
   id: string;
@@ -97,6 +98,7 @@ export default function PickupPage() {
     setErrorMessage(null);
     setUploadedImageUrl(null);
     setUploadStatus('compressing');
+    await requestScreenWakeLock('pickup_photo_upload');
 
     try {
       // 1. Instant client-side compression (reduces 10MB to ~180KB in <150ms)
@@ -124,6 +126,8 @@ export default function PickupPage() {
       setErrorMessage(
         err instanceof Error ? err.message : 'Photo optimization or upload failed'
       );
+    } finally {
+      await releaseScreenWakeLock();
     }
   };
 
@@ -190,6 +194,7 @@ export default function PickupPage() {
     }
 
     setSubmitting(true);
+    await requestScreenWakeLock('pickup_batch_submit');
 
     try {
       // 1. Get uploaded image URL (already completed in background in ~99% cases!)
@@ -238,6 +243,7 @@ export default function PickupPage() {
       const msg = err instanceof Error ? err.message : 'Error submitting pickup';
       setErrorMessage(msg);
     } finally {
+      await releaseScreenWakeLock();
       setSubmitting(false);
     }
   };

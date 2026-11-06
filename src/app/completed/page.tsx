@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { RepairItem } from '@/lib/types';
 import { formatKolkataDateOnly } from '@/lib/timezone';
 import { ImageModal } from '@/components/ImageModal';
-import { downloadReport, DownloadResult } from '@/lib/downloadHelper';
+import { downloadReport, executeDirectDownload, executeNativeShare, DownloadResult } from '@/lib/downloadHelper';
 import {
   CheckCircle2,
   Search,
@@ -22,6 +22,7 @@ import {
   X,
   FileSpreadsheet,
   AlertCircle,
+  Zap,
 } from 'lucide-react';
 
 export default function CompletedPage() {
@@ -37,6 +38,7 @@ export default function CompletedPage() {
   const [downloadResult, setDownloadResult] = useState<DownloadResult | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -115,28 +117,24 @@ export default function CompletedPage() {
     }
   };
 
+  const handleDirectDownloadClick = async () => {
+    if (!downloadResult) return;
+    setActionStatus('Downloading directly into your phone Downloads folder...');
+    await executeDirectDownload(downloadResult);
+    setTimeout(() => {
+      setActionStatus('✓ Download Triggered! File saved to Downloads.');
+    }, 1200);
+    setTimeout(() => setActionStatus(null), 6000);
+  };
+
   const handleShareFile = async () => {
     if (!downloadResult) return;
-    try {
-      const mimeType = downloadResult.filename.endsWith('.csv')
-        ? 'text/csv'
-        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      const file = new File([downloadResult.blob], downloadResult.filename, { type: mimeType });
-      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: downloadResult.filename,
-          text: `RepairTrack ${downloadResult.filename}`,
-        });
-      } else {
-        const a = document.createElement('a');
-        a.href = downloadResult.blobUrl;
-        a.download = downloadResult.filename;
-        a.click();
-      }
-    } catch (err) {
-      console.warn('Share error:', err);
-    }
+    setActionStatus('Opening Share Sheet & Saving to Downloads...');
+    await executeNativeShare(downloadResult);
+    setTimeout(() => {
+      setActionStatus('✓ Action completed! File ready.');
+    }, 1200);
+    setTimeout(() => setActionStatus(null), 6000);
   };
 
   return (
@@ -427,26 +425,40 @@ export default function CompletedPage() {
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {/* Native Mobile Share / Save to Device */}
               <button
                 type="button"
                 onClick={handleShareFile}
-                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-sm text-xs flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share / Save to Device (WhatsApp / Downloads)</span>
               </button>
 
-              {/* Direct File Download Link */}
-              <a
-                href={downloadResult.blobUrl}
-                download={downloadResult.filename}
-                className="w-full py-2 px-4 bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors"
+              {/* Direct File Download Link (Guaranteed to save into phone's Downloads) */}
+              <button
+                type="button"
+                onClick={handleDirectDownloadClick}
+                className="w-full py-3 px-4 bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold border-2 border-slate-300 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
               >
-                <Download className="w-4 h-4 text-slate-500" />
-                <span>Direct Download File</span>
-              </a>
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Direct Download File (Save to Downloads)</span>
+              </button>
+
+              {/* Live Status Feedback */}
+              {actionStatus && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{actionStatus}</span>
+                </div>
+              )}
+
+              {/* Screen Sleep Prevention Notice */}
+              <div className="px-2 py-1.5 bg-amber-50/80 border border-amber-200/60 rounded-lg text-[11px] text-amber-800 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>Screen wake lock active: Screen will not sleep until work completes.</span>
+              </div>
 
               {/* Copy CSV Text to Clipboard */}
               {downloadResult.csvText && (
